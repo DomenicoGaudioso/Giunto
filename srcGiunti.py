@@ -164,6 +164,10 @@ Ved_sle = V_sle/(nb*npt)
 
 Fted_slu = T_slu/nb
 Fted_sle = T_slu/nb
+
+#forsa sulla piastra
+Np = nf*Ved_slu
+
 #---------------------------------------------------------------------------#
 #CALCOLO DELLE RESISTENZE
 Ares = selected_propB_value["Ares"]
@@ -210,6 +214,7 @@ if T_sle == 0:
 else:
     Fsrd_sle = npt*mu*(Fpcd-0.8*Fted_sle)/gm3_slu
     
+
 
 #resistenza sezione lorda della piastra
 Rpl = lpy*tp*fyk/(gm0*1000) 
@@ -370,6 +375,13 @@ st.markdown(f" D/C = {Ved_sle/Fsrd_sle:.2f} {'✅ Verifica' if Ved_sle<= Fsrd_sl
 
 
 st.subheader("Verifica sezione netta della piastra")
+st.markdown(f" Ned = {Np:.2f} KN {'≤' if Np <= Rpn else '>'} Nrd = {Rpn:.2f} KN ")
+st.markdown(f" D/C = {Np/Rpn:.2f} {'✅ Verifica' if Np/Rpn<= 1.0 else '❌ Non Verifica'}")
 
+
+st.subheader("Verifica block shear")
+st.markdown("meccanismo di bordo")
+
+st.markdown("meccanismo interno")
 
 
