@@ -253,6 +253,7 @@ fig.update_layout(
 
 st.plotly_chart(fig)
 
+inst = (p1/tp)/(9/((235/fyk)^(0.5)))
 
 st.subheader("Sintesi delle verifiche")
 # Creiamo un dizionario con i dati delle verifiche
@@ -287,7 +288,7 @@ data = {
         Ved_slu/Fvrd,
         Ved_slu/Fbrd_est,
         Ved_slu/Fbrd_int,
-        (p1/tp)/(9/((235/fyk)^(0.5))),
+        inst,
         Fted_slu/Ftrd,
         Fted_slu/Bprd,
         (Ved_slu/Fvrd + Fted_slu/(1.4*Ftrd)),
