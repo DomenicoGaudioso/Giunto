@@ -221,6 +221,21 @@ Rpl = lpy*tp*fyk/(gm0*1000)
 #resistenza sezione netta della piastra
 Rpn = (lpy-d0*nf)*tp*fyk/(gm0*1000) 
 
+#resistenza block shear
+Lv = Lj+e1
+if nf == 1:
+    Lt = e1
+else:
+    Lt = p2
+
+Anv = tp*(Lv-(d0*(nx-0.5)))
+Ant = tp*(Lt- d0*nf*0.5 )
+Agv = Lv*tp    
+Veff1Rd = ftk*Ant/gm2 + fyk*Anv/(np.sqrt(3)*gm0)
+
+
+    
+    
 
 
 
@@ -251,7 +266,9 @@ data = {
         "Punzonamento",
         "Taglio-Trazione",
         "Attrito (SLU)",
-        "Attrito (SLE)"
+        "Attrito (SLE)",
+        "sez. netta piastra",
+        "block shear"
     ],
     
     # "Formula": [
@@ -270,12 +287,14 @@ data = {
         Ved_slu/Fvrd,
         Ved_slu/Fbrd_est,
         Ved_slu/Fbrd_int,
-        1,#(p1/tp)/(9/((235/fyk)^(0.5))),
+        (p1/tp)/(9/((235/fyk)^(0.5))),
         Fted_slu/Ftrd,
         Fted_slu/Bprd,
         (Ved_slu/Fvrd + Fted_slu/(1.4*Ftrd)),
         Ved_slu/Fsrd_slu,
         Ved_sle/Fsrd_sle,
+        Np/Rpn,
+        V_slu/Veff1Rd,
     ],
     "Esito": [
         "✅" if Ved_slu<= Fvrd else "❌",
@@ -286,7 +305,9 @@ data = {
         "✅" if Fted_slu/Bprd <= 1.0 else "❌",
         "✅" if Ved_slu/Fvrd + Fted_slu/(1.4*Ftrd) <= 1 else "❌",
         "✅" if Ved_slu<= Fsrd_slu else "❌",
-        "✅" if Ved_sle<= Fsrd_sle else "❌"
+        "✅" if Ved_sle<= Fsrd_sle else "❌",
+        "✅" if Np <= Rpn else "❌", #area netta
+        "✅" if V_slu <= Veff1Rd else "❌", #block shear
     ]
 }
 
@@ -380,8 +401,6 @@ st.markdown(f" D/C = {Np/Rpn:.2f} {'✅ Verifica' if Np/Rpn<= 1.0 else '❌ Non 
 
 
 st.subheader("Verifica block shear")
-st.markdown("meccanismo di bordo")
-
-st.markdown("meccanismo interno")
-
+st.markdown(f" Ned = {V_slu:.2f} KN {'≤' if V_slu <= Veff1Rd else '>'} Nrd = {Veff1Rd:.2f} KN ")
+st.markdown(f" D/C = {V_slu/Veff1Rd:.2f} {'✅ Verifica' if V_slu/Veff1Rd<= 1.0 else '❌ Non Verifica'}")
 
