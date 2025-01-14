@@ -1,0 +1,6 @@
+pip
+streamlit>=1.33.0
+numpy
+plotly
+streamlit_toggle
+streamlit_option_menu
