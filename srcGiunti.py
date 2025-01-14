@@ -231,7 +231,7 @@ else:
 Anv = tp*(Lv-(d0*(nx-0.5)))
 Ant = tp*(Lt- d0*nf*0.5 )
 Agv = Lv*tp    
-Veff1Rd = ftk*Ant/gm2 + fyk*Anv/(np.sqrt(3)*gm0)
+Veff1Rd = (ftk*Ant/gm2 + fyk*Anv/(np.sqrt(3)*gm0))/1000
 
 
     
