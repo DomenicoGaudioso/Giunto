@@ -2,21 +2,23 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+#import pyvista as pv
+#from pyvista.plotting import Plotter
 
 # Titolo dell'app
 st.title("Verifica giunzione metallica")
 
 # Input dei parametri della giunzione
-propB = {"M12": {"d": 12, "Ares": 84.3},
-         "M14": {"d": 14, "Ares": 115},
-         "M16": {"d": 16, "Ares": 157},
-         "M18": {"d": 18, "Ares": 192},
-         "M20": {"d": 20, "Ares": 245},
-         "M22": {"d": 22, "Ares": 303},
-         "M24": {"d": 24, "Ares": 353},
-         "M27": {"d": 27, "Ares": 459},
-         "M30": {"d": 30, "Ares": 561},
-         "M36": {"d": 36, "Ares": 817},
+propB = {"M12": {"d": 12, "Ares": 84.3, "k":8, "e":21.9},
+         "M14": {"d": 14, "Ares": 115, "k":9, "e":25.4},
+         "M16": {"d": 16, "Ares": 157, "k":10, "e":27.7},
+         "M18": {"d": 18, "Ares": 192, "k":11, "e":30},
+         "M20": {"d": 20, "Ares": 245, "k":13, "e":34.6},
+         "M22": {"d": 22, "Ares": 303, "k":14, "e":37},
+         "M24": {"d": 24, "Ares": 353, "k":15, "e":41.6},
+         "M27": {"d": 27, "Ares": 459, "k":17, "e":48},
+         "M30": {"d": 30, "Ares": 561, "k":19, "e":53.1},
+         "M36": {"d": 36, "Ares": 817, "k":23, "e":63.5},
          }
 
 classeB = {"4.6": {"fyb": 240, "fub": 400},
@@ -75,23 +77,23 @@ selected_acciaio_key = st.sidebar.selectbox("Seleziona acciao per la piastra:", 
 tp = st.sidebar.number_input(key="tp",label= "spessore piastra (mm):", min_value=1, value=10, step=1)
 npt = st.sidebar.number_input(key="pt",label= "piani di taglio:", min_value=1, value=1, step=1)
 
-e1 = st.sidebar.number_input(key="e1", label="e1: distanza del bullone esterno dal bordo in direzione della forza (mm):", min_value=1, value=20, step=10)
-p1 = st.sidebar.number_input(key="p1", label="p1: distanza tra bulloni interni in direzione della forza (mm):", min_value=0, value=20, step=10)
-e2 = st.sidebar.number_input(key="e2", label="e2: distanza del bullone esterno dal bordo in direzione ortogonale alla forza (mm):", min_value=1, value=20, step=10)
-p2 = st.sidebar.number_input(key="p2", label="p2: distanza tra bulloni interni in direzione ortogonali alla forza (mm):", min_value=0, value=20, step=10)
-nb = st.sidebar.number_input(key="nb", label="nb: numero bulloni:", min_value=1, value=4, step=1)
+e1 = st.sidebar.number_input(key="e1", label="e1: distanza del bullone esterno dal bordo in direzione della forza (mm):", min_value=1, value=30, step=10)
+p1 = st.sidebar.number_input(key="p1", label="p1: distanza tra bulloni interni in direzione della forza (mm):", min_value=0, value=60, step=10)
+e2 = st.sidebar.number_input(key="e2", label="e2: distanza del bullone esterno dal bordo in direzione ortogonale alla forza (mm):", min_value=1, value=30, step=10)
+p2 = st.sidebar.number_input(key="p2", label="p2: distanza tra bulloni interni in direzione ortogonali alla forza (mm):", min_value=0, value=60, step=10)
+nb = st.sidebar.number_input(key="nb", label="nb: numero bulloni:", min_value=1, value=10, step=1)
 nf = st.sidebar.number_input(key="nf", label="nf: numero file:", min_value=1, value=2, step=1)
 
 db = selected_propB_value = propB[selected_propB_key]["d"]
 
 
 # Sollecitazioni
-V_slu = st.sidebar.number_input("Taglio SLU(kN):", min_value=0.0, value=400.0, step=1.0)
-T_slu = st.sidebar.number_input("Trazione SLU(kN):", min_value=0.0, value=400.0, step=1.0)
+V_slu = st.sidebar.number_input("Taglio SLU(kN):", min_value=0.0, value=150.0, step=1.0)
+T_slu = st.sidebar.number_input("Trazione SLU(kN):", min_value=0.0, value=10.0, step=1.0)
 #M_slu = st.sidebar.number_input("Momento flettente SLU(kNm):", min_value=0.0, value=50.0, step=1.0)
 
-V_sle = st.sidebar.number_input("Taglio SLE (kN):", min_value=0.0, value=50.0, step=1.0)
-T_sle = st.sidebar.number_input("Trazione SLE(kN):", min_value=0.0, value=50.0, step=1.0)
+V_sle = st.sidebar.number_input("Taglio SLE (kN):", min_value=0.0, value=80.0, step=1.0)
+T_sle = st.sidebar.number_input("Trazione SLE(kN):", min_value=0.0, value=0.0, step=1.0)
 #M_sle = st.sidebar.number_input("Momento flettente SLE (kNm):", min_value=0.0, value=50.0, step=1.0)
 
 nx = int(nb/nf) #numero di bulloni per fila
@@ -118,19 +120,6 @@ e2_max = 4*tp_min + 40
 p1_max = min(14*tp_min, 200)
 p2_max = min(14*tp_min, 200)
 
-#---------------------------------------------------------------------------#
-# Disegno della giunzione
-fig = go.Figure()
-
-# Disegno la piastra
-fig.add_shape(
-    type="rect",
-    x0=0, y0=0,
-    x1=lpx, y1=lpy,
-    line=dict(color="black", width=1),
-    fillcolor="lightblue",
-)
-
 # Disegno i bulloni
 Bulloni = {} #coordinate dei bulloni
 b = 0
@@ -140,34 +129,170 @@ for i in range(0,nf):
         x = e1 + j*p1
         y = e2 + i*p2
         Bulloni[b] = [x, y]
-        
-        fig.add_shape(
-        type="circle",
-        x0=x - db / 2,
-        y0=y - db / 2,
-        x1=x + db / 2,
-        y1=y + db / 2,
-        line=dict(color="black", width=1),
-        fillcolor="red",
+
+#---------------------------------------------------------------------------#
+# Funzione per creare un cilindro
+def create_cylinder(x_center, y_center, z_bottom, height, radius, resolution=20):
+    theta = np.linspace(0, 2 * np.pi, resolution)
+    z = z_bottom  # Altezza del cilindro
+    theta_grid, z_grid = np.meshgrid(theta, z)
+    x = radius * np.cos(theta_grid) + x_center
+    y = radius * np.sin(theta_grid) + y_center
+    return x.flatten(), y.flatten(), z_grid.flatten()
+
+# Creazione del parallelepipedo (piastra)
+vertices = [
+    [0, 0, 0], [lpx, 0, 0], [lpx, lpy, 0], [0, lpy, 0],  # Base inferiore
+    [0, 0, tp], [lpx, 0, tp], [lpx, lpy, tp], [0, lpy, tp],  # Base superiore
+]
+faces = [
+    [0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4],
+    [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7],
+]
+x, y, z = zip(*vertices)
+i, j, k = [], [], []
+
+for face in faces:
+    i.extend([face[0], face[0], face[1], face[1], face[2], face[2]])
+    j.extend([face[1], face[3], face[2], face[0], face[3], face[0]])
+    k.extend([face[3], face[2], face[3], face[2], face[0], face[1]])
+
+fig = go.Figure()
+
+# Aggiunta della piastra
+fig.add_trace(
+    go.Mesh3d(
+        x=x, y=y, z=z, i=i, j=j, k=k,
+        color='lightblue', opacity=0.5, name="Piastra"
+    )
+)
+
+dd = propB[selected_propB_key]["e"]
+hd = propB[selected_propB_key]["k"]
+
+# Aggiunta dei bulloni
+for b, (x_pos, y_pos) in Bulloni.items():
+    x1_cyl, y1_cyl, z1_cyl = create_cylinder(x_pos, y_pos, -tp-30, 0, db / 2)
+    fig.add_trace(
+        go.Mesh3d(
+            x=x1_cyl, y=y1_cyl, z=z1_cyl,
+            color='yellow', opacity=0.99, name=f"Bullone {b}"
+        )
     )
 
-# Disegna la forza applicata
-
-fig.add_annotation(
-    dict(
-        x=10 + lpx,
-        y=lpy / 2,
-        xref="x",
-        yref="y",
-        text="",
-        showarrow=True,
-        ax=10 + lpx +V_slu/10,
-        ay=0,
-        arrowhead=3,
-        arrowsize=1.5,
-        arrowwidth=1.5,
-        arrowcolor='rgb(255,51,0)',
+    x2_cyl, y2_cyl, z2_cyl = create_cylinder(x_pos, y_pos, tp, 0, db / 2)
+    fig.add_trace(
+        go.Mesh3d(
+            x=x2_cyl, y=y2_cyl, z=z2_cyl,
+            color='yellow', opacity=0.5, name=f"Bullone {b}"
+        )
     )
+    #st.write(x2_cyl)
+    for i in range(0, len(x1_cyl)-1):
+        fig.add_trace(
+            go.Mesh3d(
+                x=[x1_cyl[i], x2_cyl[i], x2_cyl[i+1], x1_cyl[i+1]], 
+                y=[y1_cyl[i], y2_cyl[i], y2_cyl[i+1], y1_cyl[i+1]],
+                z=[z1_cyl[i], z2_cyl[i], z2_cyl[i+1], z1_cyl[i+1]],
+                color='yellow', opacity=0.5, name=f"Bullone {b}",
+        i = [0,1],
+        j = [1,2],
+        k = [3,3],
+        ))
+
+    ##DADO 1
+    x3_cyl, y3_cyl, z3_cyl = create_cylinder(x_pos, y_pos, tp, 0, dd, 7)
+    fig.add_trace(
+        go.Mesh3d(
+            x=x3_cyl, y=y3_cyl, z=z3_cyl,
+            color='gray', opacity=0.5, name=f"Bullone {b}"
+        )
+    )
+
+    x4_cyl, y4_cyl, z4_cyl = create_cylinder(x_pos, y_pos, tp+hd, 0, dd, 7)
+    fig.add_trace(
+        go.Mesh3d(
+            x=x4_cyl, y=y4_cyl, z=z4_cyl,
+            color='gray', opacity=0.5, name=f"Bullone {b}"
+        )
+    )
+    #st.write(x2_cyl)
+    for i in range(0, len(x3_cyl)-1):
+        fig.add_trace(
+            go.Mesh3d(
+                x=[x3_cyl[i], x4_cyl[i], x4_cyl[i+1], x3_cyl[i+1]], 
+                y=[y3_cyl[i], y4_cyl[i], y4_cyl[i+1], y3_cyl[i+1]],
+                z=[z3_cyl[i], z4_cyl[i], z4_cyl[i+1], z3_cyl[i+1]],
+                color='yellow', opacity=0.5, name=f"Bullone {b}",
+        i = [0,1],
+        j = [1,2],
+        k = [3,3],
+        ))
+
+    ##DADO 2
+    x3_cyl, y3_cyl, z3_cyl = create_cylinder(x_pos, y_pos, 0, 0, dd, 7)
+    fig.add_trace(
+        go.Mesh3d(
+            x=x3_cyl, y=y3_cyl, z=z3_cyl,
+            color='gray', opacity=0.5, name=f"Bullone {b}"
+        )
+    )
+
+    x4_cyl, y4_cyl, z4_cyl = create_cylinder(x_pos, y_pos, -hd, 0, dd, 7)
+    fig.add_trace(
+        go.Mesh3d(
+            x=x4_cyl, y=y4_cyl, z=z4_cyl,
+            color='gray', opacity=0.5, name=f"Bullone {b}"
+        )
+    )
+    #st.write(x2_cyl)
+    for i in range(0, len(x3_cyl)-1):
+        fig.add_trace(
+            go.Mesh3d(
+                x=[x3_cyl[i], x4_cyl[i], x4_cyl[i+1], x3_cyl[i+1]], 
+                y=[y3_cyl[i], y4_cyl[i], y4_cyl[i+1], y3_cyl[i+1]],
+                z=[z3_cyl[i], z4_cyl[i], z4_cyl[i+1], z3_cyl[i+1]],
+                color='gray', opacity=0.5, name=f"Bullone {b}",
+        i = [0,1],
+        j = [1,2],
+        k = [3,3],
+        ))
+    
+
+
+
+# Aggiunta della freccia di forza
+fig.add_trace(
+    go.Scatter3d(
+        x=[lpx + 10, lpx + 50],
+        y=[lpy / 2, lpy / 2],
+        z=[tp / 2, tp / 2],
+        mode='lines',
+        line=dict(color='rgb(255,51,0)', width=5),
+        name="Freccia Forza"
+    )
+)
+fig.add_trace(
+    go.Cone(
+        x=[lpx + 50], y=[lpy / 2], z=[tp / 2],
+        u=[1], v=[0], w=[0],
+        sizemode="absolute", sizeref=10,
+        anchor="tip", colorscale=[[0, 'rgb(255,51,0)'], [1, 'rgb(255,51,0)']],
+        name="Testa Freccia"
+    )
+)
+
+# Configurazione del layout
+fig.update_layout(
+    scene=dict(
+        xaxis=dict(title="Lunghezza (mm)", range=[-10, lpx + 60]),
+        yaxis=dict(title="Larghezza (mm)", range=[-10, lpy + 10]),
+        zaxis=dict(title="Spessore (mm)", range=[-10, tp + 10]),
+        aspectmode='data',
+    ),
+    title="Piastra con Bulloni e Forza Applicata",
+    width=800,
+    height=600,
 )
 
         
@@ -191,8 +316,13 @@ Np = nf*Ved_slu
 #CALCOLO DELLE RESISTENZE
 Ares = selected_propB_value["Ares"]
 fub = selected_classeB_value["fub"]
-fyk = selected_acciaio_value["fyk"]
-ftk = selected_acciaio_value["ftk"]
+
+if tp > 40 and tp <= 80:
+    fyk = selected_acciaio_value["fyk_40"]
+    ftk = selected_acciaio_value["ftk_40"]
+elif tp <= 40:
+    fyk = selected_acciaio_value["fyk"]
+    ftk = selected_acciaio_value["ftk"]
 
 ## Calcolo resistenza a taglio del singolo bullone
 if selected_classeB_key == "4.6" or selected_classeB_key == "5.6" or selected_classeB_key == "8.8":
