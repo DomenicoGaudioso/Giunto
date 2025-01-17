@@ -201,7 +201,7 @@ for b, (x_pos, y_pos) in Bulloni.items():
         ))
 
     ##DADO 1
-    x3_cyl, y3_cyl, z3_cyl = create_cylinder(x_pos, y_pos, tp, 0, dd, 7)
+    x3_cyl, y3_cyl, z3_cyl = create_cylinder(x_pos, y_pos, tp, 0, dd/2, 7)
     fig.add_trace(
         go.Mesh3d(
             x=x3_cyl, y=y3_cyl, z=z3_cyl,
@@ -209,7 +209,7 @@ for b, (x_pos, y_pos) in Bulloni.items():
         )
     )
 
-    x4_cyl, y4_cyl, z4_cyl = create_cylinder(x_pos, y_pos, tp+hd, 0, dd, 7)
+    x4_cyl, y4_cyl, z4_cyl = create_cylinder(x_pos, y_pos, tp+hd, 0, dd/2, 7)
     fig.add_trace(
         go.Mesh3d(
             x=x4_cyl, y=y4_cyl, z=z4_cyl,
@@ -230,7 +230,7 @@ for b, (x_pos, y_pos) in Bulloni.items():
         ))
 
     ##DADO 2
-    x3_cyl, y3_cyl, z3_cyl = create_cylinder(x_pos, y_pos, 0, 0, dd, 7)
+    x3_cyl, y3_cyl, z3_cyl = create_cylinder(x_pos, y_pos, 0, 0, dd/2, 7)
     fig.add_trace(
         go.Mesh3d(
             x=x3_cyl, y=y3_cyl, z=z3_cyl,
@@ -238,7 +238,7 @@ for b, (x_pos, y_pos) in Bulloni.items():
         )
     )
 
-    x4_cyl, y4_cyl, z4_cyl = create_cylinder(x_pos, y_pos, -hd, 0, dd, 7)
+    x4_cyl, y4_cyl, z4_cyl = create_cylinder(x_pos, y_pos, -hd, 0, dd/2, 7)
     fig.add_trace(
         go.Mesh3d(
             x=x4_cyl, y=y4_cyl, z=z4_cyl,
