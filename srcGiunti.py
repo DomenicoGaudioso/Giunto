@@ -7,16 +7,16 @@ import plotly.graph_objects as go
 st.title("Verifica giunzione metallica")
 
 # Input dei parametri della giunzione
-propB = {"M12": {"Ares": 84.3},
-         "M14": {"Ares": 115},
-         "M16": {"Ares": 157},
-         "M18": {"Ares": 192},
-         "M20": {"Ares": 245},
-         "M22": {"Ares": 303},
-         "M24": {"Ares": 353},
-         "M27": {"Ares": 459},
-         "M30": {"Ares": 561},
-         "M36": {"Ares": 817},
+propB = {"M12": {"d": 12, "Ares": 84.3},
+         "M14": {"d": 14, "Ares": 115},
+         "M16": {"d": 16, "Ares": 157},
+         "M18": {"d": 18, "Ares": 192},
+         "M20": {"d": 20, "Ares": 245},
+         "M22": {"d": 22, "Ares": 303},
+         "M24": {"d": 24, "Ares": 353},
+         "M27": {"d": 27, "Ares": 459},
+         "M30": {"d": 30, "Ares": 561},
+         "M36": {"d": 36, "Ares": 817},
          }
 
 classeB = {"4.6": {"fyb": 240, "fub": 400},
@@ -28,10 +28,26 @@ classeB = {"4.6": {"fyb": 240, "fub": 400},
          "10.9": {"fyb": 900, "fub": 1000},
          }
 
-acciaio = {"S235": {"fyk": 235, "ftk": 400},
-        "S270": {"fyk": 270, "ftk": 400},
-         "S355": {"fyk": 355, "ftk": 400},
+acciaio = { "S235": {"fyk": 235, "ftk": 360,"fyk_40": 215, "ftk_40": 360},
+            "S275": {"fyk": 275, "ftk": 430,"fyk_40": 255, "ftk_40": 410},
+            "S355": {"fyk": 355, "ftk": 510,"fyk_40": 335, "ftk_40": 470},
+            "S450": {"fyk": 440, "ftk": 550,"fyk_40": 420, "ftk_40": 550},
+            
+            "S275 N/NL": {"fyk": 275, "ftk": 390,"fyk_40": 255, "ftk_40": 370},
+            "S355 N/NL": {"fyk": 355, "ftk": 490,"fyk_40": 335, "ftk_40": 470},
+            "S420 N/NL": {"fyk": 420, "ftk": 520,"fyk_40": 390, "ftk_40": 520},
+            "S460 N/NL": {"fyk": 460, "ftk": 540,"fyk_40": 430, "ftk_40": 540},
+            
+            "S275 M/ML": {"fyk": 275, "ftk": 370,"fyk_40": 255, "ftk_40": 360},
+            "S355 M/ML": {"fyk": 355, "ftk": 470,"fyk_40": 335, "ftk_40": 450},
+            "S420 M/ML": {"fyk": 420, "ftk": 520,"fyk_40": 390, "ftk_40": 500},
+            "S460 M/ML": {"fyk": 460, "ftk": 540,"fyk_40": 430, "ftk_40": 530},
+            "S460 Q/QL/QL1": {"fyk": 460, "ftk": 570,"fyk_40": 440, "ftk_40": 580},
+            
+            "S235 W": {"fyk": 235, "ftk": 360,"fyk_40": 215, "ftk_40": 340},
+            "S355 W": {"fyk": 355, "ftk": 510,"fyk_40": 335, "ftk_40": 490},
          }
+
 
 mu = {"superifici sabbiate neccanicamente o a graniglia, esenti da incrostazioni di ruggine e da vaiolature": 0.5,
       "superifici sabbiate neccanicamente o a graniglia, e verniciate a spruzzo con prodotti a base di alluminio o di zinco": 0.4,
@@ -49,21 +65,25 @@ gm6 = 1.0
 gm7_1 = 1.0
 gm7_2 = 1.10
 
+# Selezione delle chiavi
 st.sidebar.header("Parametri della Giunzione")
+
+selected_propB_key = st.sidebar.selectbox("Seleziona il tipo di bullone (propB):", options=list(propB.keys()))
+selected_classeB_key = st.sidebar.selectbox("Seleziona la classe del bullone (classeB):", options=list(classeB.keys()))
+selected_acciaio_key = st.sidebar.selectbox("Seleziona acciao per la piastra:", options=list(acciaio.keys()))
+
+tp = st.sidebar.number_input(key="tp",label= "spessore piastra (mm):", min_value=1, value=10, step=1)
+npt = st.sidebar.number_input(key="pt",label= "piani di taglio:", min_value=1, value=1, step=1)
+
 e1 = st.sidebar.number_input(key="e1", label="e1: distanza del bullone esterno dal bordo in direzione della forza (mm):", min_value=1, value=20, step=10)
 p1 = st.sidebar.number_input(key="p1", label="p1: distanza tra bulloni interni in direzione della forza (mm):", min_value=0, value=20, step=10)
 e2 = st.sidebar.number_input(key="e2", label="e2: distanza del bullone esterno dal bordo in direzione ortogonale alla forza (mm):", min_value=1, value=20, step=10)
 p2 = st.sidebar.number_input(key="p2", label="p2: distanza tra bulloni interni in direzione ortogonali alla forza (mm):", min_value=0, value=20, step=10)
-nb = st.sidebar.number_input(key="nb", label="nb: numero bulloni:", min_value=1, value=2, step=1)
+nb = st.sidebar.number_input(key="nb", label="nb: numero bulloni:", min_value=1, value=4, step=1)
 nf = st.sidebar.number_input(key="nf", label="nf: numero file:", min_value=1, value=2, step=1)
-db = st.sidebar.number_input(key="db",label= "diametro dei bulloni (mm):", min_value=1, value=20, step=1)
-tp = st.sidebar.number_input(key="tp",label= "spessore piastra (mm):", min_value=1, value=20, step=1)
-npt = st.sidebar.number_input(key="pt",label= "piani di taglio:", min_value=1, value=1, step=1)
 
-# Selezione delle chiavi
-selected_propB_key = st.sidebar.selectbox("Seleziona il tipo di bullone (propB):", options=list(propB.keys()))
-selected_classeB_key = st.sidebar.selectbox("Seleziona la classe del bullone (classeB):", options=list(classeB.keys()))
-selected_acciaio_key = st.sidebar.selectbox("Seleziona acciao per la piastra:", options=list(acciaio.keys()))
+db = selected_propB_value = propB[selected_propB_key]["d"]
+
 
 # Sollecitazioni
 V_slu = st.sidebar.number_input("Taglio SLU(kN):", min_value=0.0, value=400.0, step=1.0)
@@ -77,7 +97,6 @@ T_sle = st.sidebar.number_input("Trazione SLE(kN):", min_value=0.0, value=50.0, 
 nx = int(nb/nf) #numero di bulloni per fila
 lpx = e1*2+p1*(nx-1)
 lpy = e2*2+p2*(nf-1)
-
 
 
 # Recupero dei valori selezionati
