@@ -90,11 +90,11 @@ db = selected_propB_value = propB[selected_propB_key]["d"]
 # Sollecitazioni
 V_slu = st.sidebar.number_input("Taglio SLU(kN):", min_value=0.0, value=150.0, step=1.0)
 T_slu = st.sidebar.number_input("Trazione SLU(kN):", min_value=0.0, value=10.0, step=1.0)
-#M_slu = st.sidebar.number_input("Momento flettente SLU(kNm):", min_value=0.0, value=50.0, step=1.0)
+M_slu = st.sidebar.number_input("Momento polare SLU(kNm):", min_value=0.0, value=30.0, step=1.0)
 
 V_sle = st.sidebar.number_input("Taglio SLE (kN):", min_value=0.0, value=80.0, step=1.0)
 T_sle = st.sidebar.number_input("Trazione SLE(kN):", min_value=0.0, value=0.0, step=1.0)
-#M_sle = st.sidebar.number_input("Momento flettente SLE (kNm):", min_value=0.0, value=50.0, step=1.0)
+M_sle = st.sidebar.number_input("Momento polare SLE (kNm):", min_value=0.0, value=10.0, step=1.0)
 
 nx = int(nb/nf) #numero di bulloni per fila
 lpx = e1*2+p1*(nx-1)
@@ -120,6 +120,9 @@ e2_max = 4*tp_min + 40
 p1_max = min(14*tp_min, 200)
 p2_max = min(14*tp_min, 200)
 
+xcp = lpx/2
+ycp = lpy/2
+
 # Disegno i bulloni
 Bulloni = {} #coordinate dei bulloni
 b = 0
@@ -128,7 +131,11 @@ for i in range(0,nf):
         b = b+1
         x = e1 + j*p1
         y = e2 + i*p2
-        Bulloni[b] = [x, y]
+
+        di = np.sqrt((x-xcp)**2+(y-ycp)**2) #distanza dal centro della piastra
+        Bulloni[b] = [x, y, di]
+        
+
 
 #---------------------------------------------------------------------------#
 # Funzione per creare un cilindro
@@ -163,7 +170,7 @@ fig = go.Figure()
 fig.add_trace(
     go.Mesh3d(
         x=x, y=y, z=z, i=i, j=j, k=k,
-        color='lightblue', opacity=0.5, name="Piastra"
+        color='lightblue', opacity=1.0, name="Piastra"
     )
 )
 
@@ -171,7 +178,7 @@ dd = propB[selected_propB_key]["e"]
 hd = propB[selected_propB_key]["k"]
 
 # Aggiunta dei bulloni
-for b, (x_pos, y_pos) in Bulloni.items():
+for b, (x_pos, y_pos, di) in Bulloni.items():
     x1_cyl, y1_cyl, z1_cyl = create_cylinder(x_pos, y_pos, -tp-30, 0, db / 2)
     fig.add_trace(
         go.Mesh3d(
@@ -205,7 +212,7 @@ for b, (x_pos, y_pos) in Bulloni.items():
     fig.add_trace(
         go.Mesh3d(
             x=x3_cyl, y=y3_cyl, z=z3_cyl,
-            color='gray', opacity=0.5, name=f"Bullone {b}"
+            color='yellow', opacity=1.0, name=f"Bullone {b}"
         )
     )
 
@@ -213,7 +220,7 @@ for b, (x_pos, y_pos) in Bulloni.items():
     fig.add_trace(
         go.Mesh3d(
             x=x4_cyl, y=y4_cyl, z=z4_cyl,
-            color='gray', opacity=0.5, name=f"Bullone {b}"
+            color='yellow', opacity=1.0, name=f"Bullone {b}"
         )
     )
     #st.write(x2_cyl)
@@ -223,7 +230,7 @@ for b, (x_pos, y_pos) in Bulloni.items():
                 x=[x3_cyl[i], x4_cyl[i], x4_cyl[i+1], x3_cyl[i+1]], 
                 y=[y3_cyl[i], y4_cyl[i], y4_cyl[i+1], y3_cyl[i+1]],
                 z=[z3_cyl[i], z4_cyl[i], z4_cyl[i+1], z3_cyl[i+1]],
-                color='yellow', opacity=0.5, name=f"Bullone {b}",
+                color='yellow', opacity=1.0, name=f"Bullone {b}",
         i = [0,1],
         j = [1,2],
         k = [3,3],
@@ -298,13 +305,26 @@ fig.update_layout(
         
 #---------------------------------------------------------------------------#        
 #CALCOLO DELLE SOLLECITAZIONI
+##Momento polare
+sum_di2 = np.sum([Bulloni[i][2]**2 for i in Bulloni])
+for i in Bulloni:
+    di = Bulloni[i][2]
+    vfi_slu = (M_slu*1000*di)/(npt*sum_di2) #taglio i-esimo
+    vfi_sle = (M_sle*1000*di)/(npt*sum_di2) #taglio i-esimo
+    Bulloni[i].append(vfi_slu)
+    Bulloni[i].append(vfi_sle)
+
+Ved_slu = np.sqrt((V_slu/(nb*npt))**2 + 
+                   max([Bulloni[i][3] for i in Bulloni])**2) 
+
+Ved_sle = np.sqrt((V_sle/(nb*npt))**2 + 
+                   max([Bulloni[i][4] for i in Bulloni])**2) 
 
 Lj = lpx - 2*e1
 
 beta_lf = 1 - (Lj-15*db)/(200*db)
 
-Ved_slu = V_slu/(nb*npt)
-Ved_sle = V_sle/(nb*npt)
+
 
 Fted_slu = T_slu/nb
 Fted_sle = T_slu/nb
@@ -470,7 +490,7 @@ st.table(df)
 st.subheader("Risultati del Calcolo")
 st.write(f"lunghezza della piastra: {lpx:.2f} mm")
 st.write(f"larghezza della piastra: {lpy:.2f} mm")
-st.write(f"forza sul bullone: {Ved_slu:.2f} KN")
+st.write(f"forza sul bullone più sollecitato: {Ved_slu:.2f} KN")
 
 st.subheader("Verifiche distanze ed interassi")
 st.markdown(f" e1 = {e1:.2f} mm {'≤' if e1<= e1_min else '>'} e1_min = {e1_min:.2f} mm    {'✅ Verifica' if e1>= e1_min else '❌ Non Verifica'}")
